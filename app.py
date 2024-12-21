@@ -43,6 +43,7 @@ def create():
             flash('Email already Existsed')
             return redirect(url_for('login'))
     return render_template('create.html')
+
 @app.route('/otp/<gotp>',methods=['GET','POST'])
 def otp(gotp):
     if request.method=='POST':
@@ -65,38 +66,41 @@ def otp(gotp):
     return render_template('otp.html')
 @app.route('/login',methods=['GET','POST'])
 def login():
-            if not session.get('users'):
-            # return 'your are in login'
-                if request.method=='POST':
-                    # uname=request.form['username']
-                    uemail=request.form['useremail']
-                    password=request.form['psd']
-                    cursor=mydb.cursor(buffered=True)
-                    cursor.execute('select count(useremail) from users where useremail=%s',[uemail])
-                    bdata=cursor.fetchone()
-                    if bdata[0]==1:
-                        cursor.execute('select password from users where useremail=%s',[uemail])
-                        bpassword=cursor.fetchone()
-                        if password==bpassword[0].decode('utf-8'): 
-                            print(session)
-                            session['users']=uemail
-                            print(session)
-                            return redirect(url_for('dashboard'))
-                        else:
-                            flash('password was wrong')
-                            return redirect(url_for('login'))
-                    else:
-                        flash('Email not registered pls register')
-                        return redirect(url_for('create'))
-                return render_template('login.html')
+    print(session.get('users'))
+    if not session.get('users'):
+        if request.method=='POST':
+            uemail=request.form['useremail']
+            password=request.form['psd']
+            cursor=mydb.cursor(buffered=True)
+            cursor.execute('select count(useremail) from users where useremail=%s',[uemail])
+            bdata=cursor.fetchone()
+            if bdata[0]==1:
+                cursor.execute('select password from users where useremail=%s',[uemail])
+                bpassword=cursor.fetchone()
+                if password==bpassword[0].decode('utf-8'): 
+                    print(session)
+                    session['users']=uemail
+                    print(session)
+                    return redirect(url_for('dashboard'))
+                else:
+                    flash('password was wrong')
+                    return redirect(url_for('login'))
             else:
-                return redirect(url_for('dashboard'))
+                flash('Email not registered pls register')
+                return redirect(url_for('create'))
+        return render_template('login.html')
+    else:
+        return redirect(url_for('dashboard'))
 @app.route('/dashboard')
 def dashboard():
-    return render_template('dashboard.html')
+    if session.get('users'):
+        return render_template('dashboard.html')
+    else:
+        return redirect(url_for('login'))
+    
 @app.route('/forgotpass')
 def forgotpass():
-    if session.get('user'):
+    if session.get('users'):
          return render_template('forgotpass.html')
     else:
         return redirect(url_for('login'))
@@ -133,7 +137,7 @@ def viewallnotes():
     if session.get('users'):
         try:
             cursor=mydb.cursor(buffered=True)
-            cursor.execute('select userid from users where useremail=%s',[session.get('user')])
+            cursor.execute('select userid from users where useremail=%s',[session.get('users')])
             uid=cursor.fetchone()
             cursor.execute('select nid,title,description,created_At from notes where userid=%s',[uid[0]])
             notesdata=cursor.fetchall()   #[(1,'python',' 2024-12-14 17:07:20 '),(3,'sql',' 2024-12-14 17:07:20 '),(),(),...]
@@ -331,6 +335,6 @@ def search():
     else:
         return redirect(url_for('login'))
     
-    
+
 app.run(debug=True,use_reloader=True)
 

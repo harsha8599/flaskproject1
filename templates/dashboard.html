@@ -145,7 +145,7 @@
                             </ul>
                         </li>
                     </ul>
-                    <h6> {{session.get('user')}}</h6>
+                    <h6> {{session.get('users')}}</h6>
                     <form class="d-flex" method="post" action="{{url_for('search')}}">
                         <input class="form-control me-2" type="search" name="searchdata" placeholder="Search" aria-label="Search">
                         <button class="btn btn-outline-success" type="submit">Search</button>
@@ -162,8 +162,9 @@
 
 
 </body>
-{%if sdata %}
 {% block content %}{% endblock %}
+{% if sdata %}
+
 <table border="1">
     <thead>
         <tr>
